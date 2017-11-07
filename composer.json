@@ -1,0 +1,24 @@
+{
+    "name": "resampler/resampler",
+    "type": "library",
+    "description" : "",
+    "keywords": ["image", "resize", "resample"],
+    "license": "WTFPL",
+    "homepage" : "https://github.com/arxeiss/Resampler.php",
+    "authors": [
+        {
+            "name" : "Pavel Kutáč",
+            "email" : "pavel@kutac.cz",
+            "homepage" : "http://www.kutac.cz"
+        }
+    ],
+    "require": {
+        "php" : ">=5.4.0",
+        "ext-gd" : ">=2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Resampler\\": "src"
+        }
+    }
+}

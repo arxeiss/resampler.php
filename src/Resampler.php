@@ -1,9 +1,15 @@
 <?php
 /**
- * Simple image resampler
+ * Part of Resampler.php - simple image resampler
+ * 
  * @author Pavel@kutac.cz
- * @filesource resample.php
- * @version 1.0 (6.9.2016)
+ * @version 1.0
+ */
+
+namespace Resampler;
+
+/**
+ * Main Resampler class
  */
 class Resampler{
     /**
@@ -104,7 +110,7 @@ class Resampler{
             return;
         }
         if(!is_readable($file)){
-            throw new Exception("Can't read file ".$file);
+            throw new FileException("Can't read file ", $file);
         }
         $this->loadImageData();
     }
@@ -123,7 +129,7 @@ class Resampler{
         // getImageSize is GD function
         $info = getimagesize($this->file);
         if($info == false){
-            throw new Exception("Can't read file ".$file." as image");
+            throw new FileException("Can't read file as image", $file);
         }
         list($this->width, $this->height, $this->mimeTypeConstant) = $info;
         $this->mimeType = $info['mime'];
@@ -136,7 +142,7 @@ class Resampler{
      */
     public static function load($file){
         if (!extension_loaded('gd')) {
-            throw new Exception("GD is not installed. Please install GD first");
+            throw new Exception("GD extension is not installed. Please install GD first");
         }
         return new static($file);
     }
@@ -154,7 +160,7 @@ class Resampler{
             return $this;
         }
         if($this->availableMemory() == false){
-            throw new Exception("Cannot load image to memory, there isn't enough space");
+            throw new OutOfMemoryException("Cannot load image to memory, there isn't enough space");
         }
         $this->loadImageData();
         switch ($this->mimeTypeConstant){
@@ -169,11 +175,11 @@ class Resampler{
                 $this->imgResource = imagecreatefromjpeg($this->file);
                 break;
             default:
-                throw new Exception("Image can be only PNG, GIF or JPEG");
+                throw new FileException("Image can be only PNG, GIF or JPEG", $this->file);
         }
 
         if($this->imgResource === false){
-            throw new Exception("Cannot load image to memory");
+            throw new OutOfMemoryException("Cannot load image to memory");
         }
         imagealphablending( $this->imgResource, true );
         imagesavealpha( $this->imgResource, true );
@@ -192,6 +198,10 @@ class Resampler{
         $val = trim(ini_get("memory_limit"));
         $last = strtolower($val[strlen($val)-1]);
         $val = intval($val);
+        // There is no memory limit
+        if ($val <= 0) {
+            return true;
+        }
         switch($last) {
             case 'g':
                 $val *= 1024;
@@ -259,7 +269,7 @@ class Resampler{
      * @return string
      */
     public function getResampledHTMLSize($maxWidth, $maxHeight, $resampleType, $forceSizeType = 0){
-        $newSize = self::getResizeParams($this->width, $this->height, $maxWidth, $maxHeight, $resampleType, $forceSizeType);
+        $newSize = static::getResizeParams($this->width, $this->height, $maxWidth, $maxHeight, $resampleType, $forceSizeType);
         if($newSize !== false){
             return 'width="'.$newSize['pane-width'].'" height="'.$newSize['pane-height'].'"';
         }
@@ -394,7 +404,7 @@ class Resampler{
      * @return boolean
      */
     public function willChangeSize($maxWidth, $maxHeight, $resampleType, $forceSizeType = 0){
-        $ret = self::getResizeParams($this->width, $this->height, $maxWidth, $maxHeight, $resampleType, $forceSizeType);
+        $ret = static::getResizeParams($this->width, $this->height, $maxWidth, $maxHeight, $resampleType, $forceSizeType);
         if(isset($ret['different'])){
             return $ret['different'];
         }
@@ -410,12 +420,12 @@ class Resampler{
     protected function createTmbImg($width, $height){
         // ImageCreateTrueColor will use the same amount of memory as loading JPEG
         if (!$this->availableMemory($width, $height, IMAGETYPE_JPEG)) {
-            throw new Exception("Cannot create pane for resampling, there isn't enough free memory");
+            throw new OutOfMemoryException("Cannot create pane for resampling, there isn't enough free memory");
         }
         $img = ImageCreateTrueColor($width, $height);
 
         if($img == false){
-            throw new Exception("Unable to allocate place for thumb pane");
+            throw new OutOfMemoryException("Unable to allocate place for thumb pane");
         }    
         imagealphablending( $img, false );
         imagesavealpha( $img, true );
@@ -492,7 +502,7 @@ class Resampler{
                 'dst-y' => 0
             );
         }else{
-            $newSize = self::getResizeParams($this->width, $this->height, $width, $height, $type, $forceSizeType);
+            $newSize = static::getResizeParams($this->width, $this->height, $width, $height, $type, $forceSizeType);
             if($newSize['different'] === false){
                 return $this;
             }
@@ -523,17 +533,21 @@ class Resampler{
 
     /**
      * Rotate canvas with given angle
-     * @param  string  $angle           Angle and direction to rotate, @see ROTATE_xxx
+     * @param  string|int  $angle       Angle and direction to rotate, possible values are 90, -90 180 or @see ROTATE_xxx
      * @param  boolean $returnNewCanvas If true, new instance of Resampler is returned and original can be used again
      * @return Resampler instance
      */
     public function rotate($angle, $returnNewCanvas = false){
         $this->loadToMemory();
         if (!$this->availableMemory($this->width, $this->height, IMAGETYPE_JPEG)) {
-            throw new Exception("Cannot create pane for rotation, there isn't enough free memory");
+            throw new OutOfMemoryException("Cannot create pane for rotation, there isn't enough free memory");
         }
         $angles = array(self::ROTATE_CW => -90, self::ROTATE_CCW => 90, self::ROTATE_180 => 180);
-        $angleNumeric = (isset($angles[$angle])) ? $angles[$angle] : null;
+        if (in_array($angle, $angles, true)) {
+            $angleNumeric = $angle;
+        }else{
+            $angleNumeric = (isset($angles[$angle])) ? $angles[$angle] : null;            
+        }
 
         if (!$angleNumeric) {
             throw new Exception("Undefined angle for rotation, use predefined constants");
@@ -593,7 +607,7 @@ class Resampler{
                 $this->bgColor[3] = intval(hexdec($color[7].$color[8]) / 2);
             }
         }else{
-            throw new Exception("Color $color is in bad format");
+            throw new Exception("Color {$color} is in bad format");
         }
         return $this;
     }
@@ -638,7 +652,7 @@ class Resampler{
         if (in_array($file[strlen($file) - 1], array("/", "\\"))) {
             return $file.basename($this->file);
         }
-        $mimeType = self::getTypeFromExtension($file);
+        $mimeType = static::getTypeFromExtension($file);
         if ($mimeType) {
             return $file;
         }
@@ -667,16 +681,16 @@ class Resampler{
      */
     public function save($file = null, $quality = null){
         $file = $this->getPathWithSuffix($file);
-        $mimeType = self::getTypeFromExtension($file);
+        $mimeType = static::getTypeFromExtension($file);
         if($mimeType === false){
-            throw new Exception("Unsupported image format");
+            throw new FileException("Unsupported image format", $file);
         }
         if((file_exists($file) && !is_writable($file)) || (!file_exists($file) && !is_writable(dirname($file)))){
-            throw new Exception("Can't write into file ".$file);
+            throw new FileException("Can't write into file", $file);
         }
         $this->loadToMemory();
         if (!$this->availableMemory(null, null, $mimeType, true)) {
-            throw new Exception("Cannot save image to file, there isn't enough needed memory");
+            throw new OutOfMemoryException("Cannot save image to file, there isn't enough needed memory");
         }
         switch ($mimeType){
             case IMAGETYPE_PNG:
@@ -695,7 +709,7 @@ class Resampler{
                 $success = imagejpeg($this->imgResource, $file, $quality);
         }
         if($success === false){
-            throw new Exception("Cannot save image to location $file");
+            throw new FileException("Cannot save image to location", $file);
         }
         return $this;
     }
@@ -711,13 +725,13 @@ class Resampler{
         $this->loadToMemory();
         $mimeType = $this->mimeTypeConstant;
         if($ext != null){
-            $mimeType = self::getTypeFromExtension(".".$ext);
+            $mimeType = static::getTypeFromExtension(".".$ext);
             if($mimeType === false){
                 throw new Exception("Unsupported image extension");
             }
         }
         if (!$this->availableMemory(null, null, $mimeType, true)) {
-            throw new Exception("Cannot save image to file, there isn't enough needed memory");
+            throw new OutOfMemoryException("Cannot stream image, there isn't enough needed memory");
         }
         switch ($mimeType){
             case IMAGETYPE_PNG:{
