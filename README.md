@@ -10,11 +10,36 @@ Simple PHP class for resampling images with GD library.
 * Using cascade pattern / method chaining
 * Support JPEG, PNG and GIF images. Decision is automatical based on file suffix
 
+### Installation & requirements
+Library can be installed from [Packagist](https://packagist.org/packages/resampler/resampler) and loaded with Composer, which is preferred way. Alternatively can be installed manually and loaded with `autoload.php` file.
+
+Put this line into your `composer.json` file
+```
+"resampler/resampler": "~1.0"
+```
+
+or execute following command
+
+```
+composer require resampler/resampler
+```
+
+Manually can be library loaded with including `autoload.php` file:
+```php
+// Update to fit your path to resampler folder
+include 'resampler/autoload.php'
+```
+
+#### Requirements
+Library requires at least PHP 5.4 and extension GD 2.0
+
 ### Simple code examples
 
 All public methods are commented and there is no documentation now. Check code examaples and source code.
 
 ```php
+use Resampler\Resampler;
+
 try{
     $img = Resampler::load("path/to/file.jpg")  // Load given file
         ->resize(300, 200)                      // Resize to fit maximum size 300x200 px
@@ -22,6 +47,7 @@ try{
         ->save("path/to/thumb.jpg")             // Save file as JPEG file
         ->output("jpg");                        // Send also as output to browser as JPEG file
 }catch(Exception $e){
+    // Alternatively catch specific Resampler exceptions
     die($e->getMessage());
 }
 ```
@@ -32,6 +58,8 @@ try{
 Image is loaded and resized to fit maximum size **300** x **220** px and saved.  
 The same image is inserted into rectangle with size **350** x **250** px and background color. Image inside is resized up due to parameter FORCE_SIZE_TYPE_SCALE_UP.
 ```php
+use Resampler\Resampler;
+
 // Step 1
 Resampler::load("img/backup.jpg")->resize(300, 220)->save("step1.jpg")
 // Step 2
@@ -46,6 +74,8 @@ Image is loaded and background color is set. First method of next each line (exc
 Saving here shows different methods of saving. Name is added if missing, or only suffix. Otherwise, original is replaced by new file.
 
 ```php
+use Resampler\Resampler;
+
 $img = Resampler::load("img/logo.png")->setBgColor("#48b3f6AA"); 
 // saved as img/cropped/logo.png
 $img->crop(400, 200, null, true)->rotate(Resampler::ROTATE_CW)
@@ -61,6 +91,8 @@ $img->resize(400, 400)->save("");
 #### Image base64 output
 Last parametr of output deciding to send or not to send headers. Now headers are not send and with output buffer we can "catch" and encode data to base64. We are using also other public functions to get mime type and image size.
 ```php
+use Resampler\Resampler;
+
 $img = Resampler::load("img/flying.jpg")->setBgColor("#dd0")->crop(200, 200)->rectangle(220, 220);
 $htmlSize = $img->getCurrentHTMLSize();
 $mimetypeImg = $img->getMimeType();
