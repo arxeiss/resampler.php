@@ -31,7 +31,7 @@ include 'resampler/autoload.php'
 ```
 
 #### Requirements
-Library requires at least PHP 5.4 and extension GD 2.0
+Library requires at least PHP 5.4 and extension GD
 
 ### Simple code examples
 
