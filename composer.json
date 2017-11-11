@@ -1,7 +1,7 @@
 {
     "name": "resampler/resampler",
     "type": "library",
-    "description" : "",
+    "description" : "Simple PHP library for resampling images with GD extension",
     "keywords": ["image", "resize", "resample"],
     "license": "WTFPL",
     "homepage" : "https://github.com/arxeiss/Resampler.php",

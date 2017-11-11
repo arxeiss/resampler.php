@@ -1,6 +1,6 @@
 # Resampler.php
 
-Simple PHP class for resampling images with GD library.
+Simple PHP library for resampling images with GD extension.
 
 ### Why another  library? What is so special?
 
