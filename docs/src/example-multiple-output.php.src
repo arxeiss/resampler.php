@@ -1,0 +1,16 @@
+use Resampler\Resampler;
+
+$img = Resampler::load("img/logo.png")->setBgColor("#48b3f6AA"); 
+
+// saved as img/cropped/logo.png
+$img->crop(400, 200, null, true)
+    ->rotate(Resampler::ROTATE_CW)
+    ->save("img/cropped/");
+
+// saved as img/rectangle.png
+$img->rotate(Resampler::ROTATE_CCW, true)
+    ->setBgColor("#7DF64866")
+    ->rectangle(400, 400)->save("img/rectangle");
+
+// Saved into original file
+$img->resize(400, 400)->save("");

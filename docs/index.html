@@ -13,6 +13,7 @@
 
     <link href="https://fonts.googleapis.com/css?family=Montserrat:700|Ubuntu:400,700" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/prism.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 
@@ -40,7 +41,17 @@
             <div class="col-md-3">
                 <nav class="docs-sidebar" data-spy="affix" data-offset-top="300" data-offset-bottom="200" role="navigation">
                     <ul class="nav">
-                        <li><a href="#top">Why another library?</a></li>
+                        <li><a href="#installation-and-requirements">Installation and requirements</a></li>
+                        <li>
+                            <a href="#code-examples">Code examples</a>
+                            <ul class="nav">
+                                <li><a href="#code-examples">Basic example</a></li>
+                                <li><a href="#chaining-example">Chaining example</a></li>
+                                <li><a href="#multiple-outputs">Multiple outputs and saving</a></li>
+                                <li><a href="#output-base64">Output as base64</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#credits">Credits</a></li>
                     </ul>
                 </nav >
             </div>
@@ -49,50 +60,118 @@
 
                     <div class="row">
                         <div class="col-md-12 left-align">
-                            <h2 class="dark-text">Why another library? What is so special?<hr></h2>
-                            <div class="row">
+                            <h2 class="dark-text">Introduction<hr></h2>
 
-                                <div class="col-md-12 full">
-                                    <ul>
-                                        <li>Resampler is only for resampling and never will contain drawing methods</li>
-                                        <li>Counting memory usage to avoid Fatal error caused by allocating too much memory</li>
-                                        <li>Support resize, crop, rectangle and rotate methods. Especially rectangle is missing in many other libraries</li>
-                                        <li>Using cascade pattern / method chaining</li>
-                                        <li>Support JPEG, PNG and GIF images. Decision is automatical based on file suffix</li>
-                                    </ul>
-                                </div>
-
+                            <div class="intro1">
+                                <ul>
+                                    <li><strong>Item Name : </strong>Resampler.php</li>
+                                    <li><strong>Item Version : </strong> v 1.0</li>
+                                    <li><strong>Author  : </strong> <a href="http://www.kutac.cz" target="_blank">Pavel Kutáč</a></li>
+                                    <li><strong>License : </strong> <a href="http://www.wtfpl.net/" target="_blank">WTFPL</a></li>
+                                </ul>
                             </div>
-                            <!-- end row -->
+
+                            <hr>
+                            <div>
+                                <p>Resampler.php is simple wrapper for native PHP GD image functions, with some extra features. Resampler is intended for resizing images, and I'm not planning to add drawing methods directly. But anyone can extend library, as all properties and functions are <code>public</code> or <code>protected</code>.</p>
+
+                                <h3 data-hash-icon="this" id="why-and-what">Why another library? What is so special?</h3>
+                                <ul>
+                                    <li>Resampler is only for resampling and will not contain drawing methods.</li>
+                                    <li>Counting memory usage to avoid Fatal error caused by allocating too much memory.</li>
+                                    <li>Support resize, crop, rectangle and rotate methods. Especially rectangle is missing in many other libraries.</li>
+                                    <li>Using cascade pattern / method chaining.</li>
+                                    <li>Support JPEG, PNG and GIF images. Decision is automatical based on file suffix.</li>
+                                </ul>
+                            </div>                                
                         </div>
                     </div>
                 </section>
 
-                <section id="Installation-requirements" class="section">
-
+                <section id="installation-and-requirements" class="section">
                     <div class="row">
                         <div class="col-md-12 left-align">
-                            <h2 class="dark-text">Rest is coming soon<hr></h2>
-                        </div>
-                        <!-- end col -->
-                    </div>
-                    <!-- end row -->
+                            <h2 class="dark-text" data-hash-icon="parent.section">Installation and requirements<hr></h2>
 
+                            <p>Library can be installed from <a href="https://packagist.org/packages/resampler/resampler">Packagist</a> and loaded with Composer, which is preferred way. Alternatively can be installed manually and loaded with autoload.php file.</p>
+
+                            <p class="nopad">Put this line into your <code>composer.json</code> file</p>
+
+                            <pre><code class="language-json">"resampler/resampler": "~1.0"</code></pre>
+                            <p class="nopad">or execute following command</p>
+                            <pre><code class="language-bash">composer require resampler/resampler</code></pre>
+                            <p class="nopad">Manually can be library loaded with including <code>autoload.php</code> file:</p>
+                            <pre><code class="language-php">// Update to fit your path to resampler folder
+include 'resampler/autoload.php'</code></pre>
+                            
+                            <h3 id="requirements" data-hash-icon="this">Requirements and support</h3>
+                            <p>Library requires:</p>
+                            <ul>
+                                <li>PHP >= 5.4</li>
+                                <li>GD extension</li>
+                            </ul>
+                            <p>Library also works with PHP 7.</p>
+                        </div>
+                    </div>
                 </section>
-                <!-- end section -->
+
+                <section id="code-examples" class="section">
+                    <div class="row">
+                        <div class="col-md-12 left-align">
+                            <h2 class="dark-text" data-hash-icon="parent.section">Code examples<hr></h2>
+
+                            <p class="nopad">Basic usage of Resampler.php</p>
+                            <pre data-src="src/example1.php.src" class="language-php line-numbers"></pre>
+
+                            <h3 id="chaining-example" data-hash-icon="this">Chaining example - resize and rectangle</h3>
+                            <p>Image is loaded and resized to fit maximum size <strong>300 x 220</strong> px and saved.
+                            The same image is inserted into rectangle with size <strong>350 x 250 px</strong> and background color. Image inside is resized up due to parameter <code>FORCE_SIZE_TYPE_SCALE_UP</code>. See more in API documentation.</p>
+
+                            <pre data-src="src/example-chaining.php.src" class="language-php line-numbers"></pre>
+                            <img src="http://www.kutac.cz/image/resampler-example-1-92416.png" alt="Chaining example" class="img-responsive center-block">
+
+                            <h3 id="multiple-outputs" data-hash-icon="this">Multiple output images and different saving methods</h3>
+                            <p>Image is loaded and background color is set. On highlighted lines (6, 11) last parametr is <code class="language-php">true</code>. This change behavior and returns new instance of Resampler. Original <code class="language-php">$img</code> is not changed by following chained methods, and can be used repeatedly.</p>
+
+                            <p>Saving here also shows different methods of saving. Name, or suffix, is added if missing. If path is empty, original image is replaced.</p>                            
+
+                            <pre data-src="src/example-multiple-output.php.src" class="language-php line-numbers" data-line="6,11"></pre>
+                            <img src="http://www.kutac.cz/image/resampler-example-2-70397.png" alt="Multiple outputs example" class="img-responsive center-block">
+
+                            <h3 id="output-base64" data-hash-icon="this">Print image as base64</h3>
+                            <p>It is possible to prevent sending headers by last parametr. Then it is possible to "catch" data with output buffer and encode to base64. Other methods can be used to obtain mime type and image size.</p>
+                            <pre data-src="src/example-base64-output.php.src" class="language-php line-numbers" data-line="12"></pre>
+                            <p>HTML output:</p>
+                            <pre data-src="src/example-base64-output.html" class="language-html"></pre>
+
+                            <img src="http://www.kutac.cz/image/resampler-example-3-09390.jpg" alt="Base64 output example" class="img-responsive center-block">
+
+                        </div>
+                    </div>
+                </section>
+
+                <section id="credits" class="section">
+                    <div class="row">
+                        <div class="col-md-12 left-align">
+                            <h2 class="dark-text" data-hash-icon="parent.section">Credits<hr></h2>
+                            <ul>
+                                <li>Thanks to Surjith for this <a href="https://github.com/surjithctly/documentation-html-template">documentation template</a> based on <a href="https://getbootstrap.com/">Bootstrap</a></li>
+                                <li>Used highlighter is <a href="http://prismjs.com/">Prism.js</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
             </div>
             <!-- // end .col -->
-
         </div>
         <!-- // end .row -->
-
     </div>
     <!-- // end container -->
 
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-
-    <!-- CUSTOM PLUGINS -->
+    <script src="js/prism.min.js"></script>
     <script src="js/custom.js"></script>
 
 </body>
