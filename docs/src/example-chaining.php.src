@@ -1,0 +1,6 @@
+use Resampler\Resampler;
+
+// Step 1
+Resampler::load("img/backup.jpg")->resize(300, 220)->save("step1.jpg")
+// Step 2
+->setBgColor("#aa2222")->rectangle(350, 250, Resampler::FORCE_SIZE_TYPE_SCALE_UP)->save("step2.jpg");
