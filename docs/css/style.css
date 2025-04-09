@@ -225,7 +225,6 @@ h4 a {
 }
 h3.hasHashIcon{
     margin-top: 0;
-    padding-top: 60px;
 }
 
 @media(min-width: 480px){
@@ -330,7 +329,7 @@ h3.hasHashIcon{
     font-size: 14px;
 }
 
-/* hover links */ 
+/* hover links */
 .docs-sidebar .nav>li:not(.active)>a:hover {
     color: #921010;
     text-decoration: none;
@@ -351,13 +350,13 @@ h3.hasHashIcon{
     border-left-color: #580000;
 }
 /* all active links */
-.docs-sidebar .nav>.active>a, 
+.docs-sidebar .nav>.active>a,
 .docs-sidebar .nav>.active:hover>a,
 .docs-sidebar .nav>.active:focus>a {
     font-weight: 700;
 }
 /* nested active links */
-.docs-sidebar .nav .nav>.active>a, 
+.docs-sidebar .nav .nav>.active>a,
 .docs-sidebar .nav .nav>.active:hover>a,
 .docs-sidebar .nav .nav>.active:focus>a {
     font-weight: 500;

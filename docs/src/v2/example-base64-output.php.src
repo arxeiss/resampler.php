@@ -1,0 +1,17 @@
+use Resampler\Color;
+use Resampler\Resampler;
+
+$img = Resampler::load("img/flying.jpg")
+    ->setBackgroundColor(new Color("#dd0"))
+    ->crop(200, 200)
+    ->rectangle(220, 220);
+
+$mimetypeImg = $img->getMimeType();
+
+ob_start();
+$img->output(null, null, false);
+$baseImg = base64_encode(ob_get_clean());
+
+echo '<body>
+    <img src="data:'.$mimetypeImg.';base64,'.$baseImg.'" width="'.$img->getWidth().'" height="'.$img->getHeight().'">
+</body>';

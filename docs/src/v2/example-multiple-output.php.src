@@ -1,0 +1,20 @@
+use Resampler\Color;
+use Resampler\Enums\Rotate;
+use Resampler\Resampler;
+
+// Second parameter rotates image by EXIF data directly after load. If no EXIF data were found, it does nothing.
+$img = Resampler::load("img/logo.png", true)->setBackgroundColor(new Color("#48b3f6AA"));
+
+// saved as img/cropped/logo.png
+$img->crop(400, 200, false, true)
+    ->rotate(Rotate::DEG_90_CW)
+    ->save("img/cropped/");
+
+// saved as img/rectangle.png
+$img->rotate(Rotate::DEG_90_CCW, true)
+    ->setBackgroundColor(new Color("#7DF64866"))
+    ->rectangle(400, 400)
+    ->save("img/rectangle");
+
+// Saved into original file
+$img->resize(400, 400)->save("");
