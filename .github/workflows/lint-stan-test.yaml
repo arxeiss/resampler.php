@@ -1,0 +1,77 @@
+name: Lint, STAN and Test Code
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: lint-stan-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  phpunit:
+    strategy:
+      fail-fast: false
+      matrix:
+        versions:
+          - { php: '8.1' }
+          - { php: '8.2' }
+          - { php: '8.3' }
+
+    name: PHP Unit Tests (PHP:${{ matrix.versions.php }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.versions.php }}
+          tools: composer:v2
+          coverage: pcov
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run tests
+        env:
+          CREATE_SNAPSHOTS: false
+        run: |
+          php -r "print_r(gd_info());"
+          php vendor/bin/phpunit --coverage-filter=src --coverage-text --coverage-clover=coverage.xml
+
+      - name: Upload coverage to Codecov
+        # Upload coverage only on latest PHP
+        if: ${{ matrix.versions.php == '8.3' }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  checks:
+    name: Lint and STAN
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run:  composer install
+
+      - name: Run lint
+        run: composer lint
+
+      - name: Run PHP STAN
+        run: composer stan

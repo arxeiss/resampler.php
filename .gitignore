@@ -1,6 +1,24 @@
-# OS generated files #
-######################
+composer.lock
+composer.phar
+
+.phpunit.result.cache
+.phpunit.cache
+
+/vendor
+
+### Netbeans ###
+nbproject
+
+### PhpStorm ###
+.idea
+
+### Sublime Text ###
+*.sublime-*
+!*.sublime-project
+
+### VS Code ###
+.vscode/
+
+### OS Specific ###
 .DS_Store
-._*
-Icon
-*.db
+Thumbs.db

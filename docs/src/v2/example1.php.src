@@ -1,0 +1,13 @@
+use Resampler\Enums\Rotate;
+use Resampler\Resampler;
+
+try{
+    $img = Resampler::load("path/to/file.jpg")  // Load given file
+        ->resize(300, 200)                      // Resize to fit maximum size 300x200 px
+        ->rotate(Rotate::DEG_90_CW)             // Perform clockwise rotation by 90°
+        ->save("path/to/thumb.jpg")             // Save file as JPEG file
+        ->output("jpg");                        // Send also as output to browser as JPEG file
+}catch(Exception $e){
+    // Alternatively catch specific Resampler exceptions
+    die($e->getMessage());
+}

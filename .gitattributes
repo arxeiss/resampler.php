@@ -1,3 +1,7 @@
-* text eol=lf
+* text=auto
 LICENCE export-ignore
 docs/ export-ignore
+/tests export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+phpunit.xml.dist export-ignore

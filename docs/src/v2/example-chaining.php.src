@@ -1,0 +1,9 @@
+<?php
+
+use Resampler\Color;
+use Resampler\Resampler;
+
+// Step 1 - rotateByExif does nothing, if no EXIF data were found
+Resampler::load("img/backup.jpg")->resize(300, 220)->rotateByExif()->save("step1.jpg")
+// Step 2
+->setBackgroundColor(new Color("#aa2222"))->rectangle(350, 250, true)->save("step2.jpg");

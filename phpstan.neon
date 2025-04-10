@@ -1,0 +1,8 @@
+parameters:
+	paths:
+		- src
+
+	level: 8
+
+	ignoreErrors:
+		- '#int\<(0|1), (max|255|127)\>#' # Numeric ranges
