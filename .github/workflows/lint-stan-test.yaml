@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - master
+      - 'v*.x'
   pull_request:
-    branches:
-      - master
 
 concurrency:
   group: lint-stan-test-${{ github.ref }}
@@ -18,9 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         versions:
-          - { php: '8.1' }
-          - { php: '8.2' }
-          - { php: '8.3' }
+          - { php: '8.1', coverage: false }
+          - { php: '8.2', coverage: false }
+          - { php: '8.3', coverage: true }
 
     name: PHP Unit Tests (PHP:${{ matrix.versions.php }}
     runs-on: ubuntu-latest
@@ -44,11 +43,15 @@ jobs:
           CREATE_SNAPSHOTS: false
         run: |
           php -r "print_r(gd_info());"
-          php vendor/bin/phpunit --coverage-filter=src --coverage-text --coverage-clover=coverage.xml
+          if [[ ${{ matrix.versions.coverage }} == true ]]; then
+            php vendor/bin/phpunit --coverage-filter=src --coverage-text --coverage-clover=coverage.xml
+          else
+            php vendor/bin/phpunit
+          fi
 
       - name: Upload coverage to Codecov
         # Upload coverage only on latest PHP
-        if: ${{ matrix.versions.php == '8.3' }}
+        if: ${{ matrix.versions.coverage }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

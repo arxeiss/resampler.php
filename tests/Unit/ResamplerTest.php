@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Resampler\Color;
+use Resampler\Enums\Flip;
 use Resampler\Enums\Rotate;
 use Resampler\Exceptions\FileException;
 use Resampler\Resampler;
@@ -159,5 +160,29 @@ final class ResamplerTest extends TestCase
     {
         $path = __DIR__ . '/../data/' . $path;
         $this->assertSame($expected, Resampler::load($path)->getPathWithSuffix($newPath));
+    }
+
+    public function testReturnNewCanvasOnNonChanging(): void
+    {
+        $origin = Resampler::load(__DIR__ . '/../data/josh-hild-unsplash.jpg', true);
+
+        // Return new canvas on non changing for all methods
+        $newOnNoRotation = $origin->rotate(Rotate::DEG_0, true);
+        $newOnNoFlip = $origin->flip(Flip::None, true);
+        $newOnNoResize = $origin->resize($origin->getWidth(), $origin->getHeight(), false, true);
+
+        $this->assertNotSame($origin, $newOnNoRotation);
+        $this->assertNotSame($origin, $newOnNoFlip);
+        $this->assertNotSame($origin, $newOnNoResize);
+
+        $newOnNoRotation->resize(100, 100);
+        $newOnNoFlip->resize(200, 200);
+        $newOnNoResize->resize(150, 150);
+
+        // Verify that changing 1 doesn't affect others and we really got new canvas even on non changing calls.
+        $this->assertSame($origin->getHeight(), 800);
+        $this->assertSame($newOnNoRotation->getHeight(), 100);
+        $this->assertSame($newOnNoFlip->getHeight(), 200);
+        $this->assertSame($newOnNoResize->getHeight(), 150);
     }
 }

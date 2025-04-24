@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Resampler\Color;
+use Resampler\Enums\Flip;
 use Resampler\Resampler;
 use Resampler\ResizeParams;
 use Resampler\Utils;
@@ -28,8 +29,12 @@ final class ResamplerTest extends TestCase
     {
         return [
             '1-0deg.jpg' => ['1-0deg.jpg', '1-0deg.jpg'],
+            '2-0deg-flip-horizontal.jpg' => ['2-0deg-flip-horizontal.jpg', '2-0deg-flip-horizontal.jpg'],
             '3-180deg.jpg' => ['3-180deg.jpg', '3-180deg.jpg'],
+            '4-0deg-flip-vertical.jpg' => ['4-0deg-flip-vertical.jpg', '4-0deg-flip-vertical.jpg'],
+            '5-90degCCW-flip-vertical.jpg' => ['5-90degCCW-flip-vertical.jpg', '5-90degCCW-flip-vertical.jpg'],
             '6-90degCCW.jpg' => ['6-90degCCW.jpg', '6-90degCCW.jpg'],
+            '7-90deg-flip-vertical.jpg' => ['7-90deg-flip-vertical.jpg', '7-90deg-flip-vertical.jpg'],
             '8-90-deg.jpg' => ['8-90-deg.jpg', '8-90-deg.jpg'],
         ];
     }
@@ -137,5 +142,29 @@ final class ResamplerTest extends TestCase
             ->rectangle($w, $h, $scaleUp)
             ->save(__DIR__ . '/../output/' . $out);
         $this->assertMatchesFileSnapshot(__DIR__ . '/../output/' . $out);
+    }
+
+    public function testFlip(): void
+    {
+        $r = Resampler::load(__DIR__ . '/../data/transparent.png', true);
+        // Saved image is new canvas, second flip shouldn't be affected by the first call
+        $r->flip(Flip::Both, true)->save(__DIR__ . '/../output/flip-both.png');
+        $r->flip(Flip::Horizontal)->save(__DIR__ . '/../output/flip-horizontal.png');
+
+        $this->assertMatchesFileSnapshot(__DIR__ . '/../output/flip-both.png');
+        $this->assertMatchesFileSnapshot(__DIR__ . '/../output/flip-horizontal.png');
+    }
+
+    public function testReturnNewCanvasOnNonChanging(): void
+    {
+        $r = Resampler::load(__DIR__ . '/../data/transparent.png', true);
+        // Same size but return new canvas
+        $r2 = $r->flip(Flip::None, true);
+
+        $r->resize(36, 36)->save(__DIR__ . '/../output/resize-36x36.jpg');
+        $r2->save(__DIR__ . '/../output/not-flipped.jpg');
+
+        $this->assertMatchesFileSnapshot(__DIR__ . '/../output/resize-36x36.jpg');
+        $this->assertMatchesFileSnapshot(__DIR__ . '/../output/not-flipped.jpg');
     }
 }
