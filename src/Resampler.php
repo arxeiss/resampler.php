@@ -6,6 +6,7 @@ namespace Resampler;
 
 use finfo;
 use GdImage;
+use Resampler\Enums\Flip;
 use Resampler\Enums\ResampleMethod;
 use Resampler\Enums\Rotate;
 
@@ -18,6 +19,7 @@ class Resampler
     protected ?GdImage $imgResource = null;
     protected Color $bgColor;
     protected Rotate $exifRotation = Rotate::DEG_0;
+    protected Flip $exifFlip = Flip::None;
     protected bool $disableMemoryCheck = false;
 
     /**
@@ -43,6 +45,21 @@ class Resampler
     public function __destruct()
     {
         $this->releaseMemory();
+    }
+
+    protected function newWithCopiedProperties(GdImage $resource): static
+    {
+        $r = new static($this->file, $resource);
+        $r->width = $this->width;
+        $r->height = $this->height;
+        $r->mimeType = $this->mimeType;
+        $r->mimeTypeConstant = $this->mimeTypeConstant;
+        $r->bgColor = clone $this->bgColor;
+        $r->disableMemoryCheck = $this->disableMemoryCheck;
+        $r->exifRotation = $this->exifRotation;
+        $r->exifFlip = $this->exifFlip;
+
+        return $r;
     }
 
     /**
@@ -119,11 +136,16 @@ class Resampler
         if ($data === false) {
             return;
         }
-        $this->exifRotation = match ($data['Orientation'] ?? 0) {
-            3 => Rotate::DEG_180,
-            6 => Rotate::DEG_90_CW, // It is rotated 90 CCW, so we need now 90 CW to put back to normal state
-            8 => Rotate::DEG_90_CCW,
-            default => Rotate::DEG_0,
+        [$this->exifRotation, $this->exifFlip] = match ($data['Orientation'] ?? 0) {
+            2 => [Rotate::DEG_0, Flip::Horizontal],
+            3 => [Rotate::DEG_180, Flip::None],
+            4 => [Rotate::DEG_0, Flip::Vertical],
+            5 => [Rotate::DEG_90_CW, Flip::Horizontal],
+            // It is rotated 90 CCW, so we need now 90 CW to put back to normal state
+            6 => [Rotate::DEG_90_CW, Flip::None],
+            7 => [Rotate::DEG_90_CCW, Flip::Horizontal],
+            8 => [Rotate::DEG_90_CCW, Flip::None],
+            default => [Rotate::DEG_0, Flip::None],
         };
     }
 
@@ -295,7 +317,7 @@ class Resampler
     ): static {
         $newSize = Utils::getResizeParams($this->width, $this->height, $width, $height, $type, $scaleUp);
         if (!$newSize->isChanging) {
-            return $this;
+            return $returnNewCanvas ? $this->getNewCanvas() : $this;
         }
 
         $this->loadToMemory();
@@ -325,7 +347,7 @@ class Resampler
     public function rotate(Rotate $angle, bool $returnNewCanvas = false): static
     {
         if ($angle === Rotate::DEG_0) {
-            return $this;
+            return $returnNewCanvas ? $this->getNewCanvas() : $this;
         }
 
         $this->loadToMemory();
@@ -360,14 +382,53 @@ class Resampler
         return $this->handleTmb($tmb, $width, $height, $returnNewCanvas);
     }
 
+    /**
+     * Rotate canvas with given angle.
+     *
+     * @param bool $returnNewCanvas If true, new instance of Resampler is returned and original can be used again.
+     */
+    public function flip(Flip $flipDir, bool $returnNewCanvas = false): static
+    {
+        if ($flipDir === Flip::None) {
+            return $returnNewCanvas ? $this->getNewCanvas() : $this;
+        }
+
+        $this->loadToMemory();
+        $toReturn = $this;
+
+        if ($returnNewCanvas) {
+            $toReturn = $this->getNewCanvas();
+        }
+
+        //@phpstan-ignore-next-line argument.type (After loadToMemory() it will never be null)
+        if (\imageflip($toReturn->imgResource, $flipDir->value) === false) {
+            throw new \Resampler\Exceptions\Exception('Unable to flip image');
+        }
+
+        return $toReturn;
+    }
+
+    /**
+     * Return new instance of Resampler with same image loaded to memory.
+     * But further operations will not affect original.
+     */
+    public function getNewCanvas(): static
+    {
+        $this->loadToMemory();
+        $tmb = $this->createTmbImg($this->width, $this->height);
+        //@phpstan-ignore-next-line argument.type (After loadToMemory() it will never be null)
+        if (\imagecopy($tmb, $this->imgResource, 0, 0, 0, 0, $this->width, $this->height) === false) {
+            throw new \Resampler\Exceptions\Exception('Unable to copy image');
+        }
+
+        return $this->newWithCopiedProperties($tmb);
+    }
+
     protected function handleTmb(GdImage $tmb, int $width, int $height, bool $returnNewCanvas): static
     {
         $returnObject = $this;
         if ($returnNewCanvas) {
-            $returnObject = new static($this->file, $tmb);
-            $returnObject->mimeType = $this->mimeType;
-            $returnObject->mimeTypeConstant = $this->mimeTypeConstant;
-            $returnObject->bgColor = clone $this->bgColor;
+            $returnObject = $this->newWithCopiedProperties($tmb);
         }
 
         $returnObject->width = $width;
@@ -382,15 +443,16 @@ class Resampler
     }
 
     /**
-     * Rotate canvas with angle from EXIF data.
+     * Rotate and flip canvas based on EXIF data. It first performs rotation and then horizontal or vertical flip.
      *
      * @param bool $returnNewCanvas If true, new instance of Resampler is returned and original can be used again.
      */
     public function rotateByExif(bool $returnNewCanvas = false): static
     {
-        $r = $this->rotate($this->exifRotation, $returnNewCanvas);
-        // Reset to zero, so in case of multiple calls, it is not rotated again.
-        $this->exifRotation = Rotate::DEG_0;
+        $r = $this->rotate($this->exifRotation, $returnNewCanvas)->flip($this->exifFlip);
+        // Reset to zero, so in case of multiple calls, it is not rotated or flipped again.
+        $r->exifRotation = Rotate::DEG_0;
+        $r->exifFlip = Flip::None;
 
         return $r;
     }
