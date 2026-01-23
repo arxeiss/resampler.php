@@ -64,7 +64,7 @@ final class ResamplerTest extends TestCase
     public function testLoadAndMemoryChecks(): void
     {
         $path = __DIR__ . '/../data/ian-keefe-unsplash.jpg';
-        $this->assertNotFalse(\ini_set('memory_limit', '15M'));
+        $this->assertNotFalse(\ini_set('memory_limit', '30M'));
 
         // By default, memory checks are disabled unless GD is bundled. Which is not true for Github Actions
         $r = Resampler::load($path);
@@ -90,7 +90,7 @@ final class ResamplerTest extends TestCase
     public function testCheckMemoryAtThumbCreation(): void
     {
         $path = __DIR__ . '/../data/ian-keefe-unsplash.jpg';
-        $this->assertNotFalse(\ini_set('memory_limit', '15M'));
+        $this->assertNotFalse(\ini_set('memory_limit', '30M'));
 
         // By default, memory checks are disabled unless GD is bundled. Which is not true for Github Actions
         $r = Resampler::load($path)
