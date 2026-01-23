@@ -215,7 +215,6 @@ class Resampler
     public function releaseMemory(): static
     {
         if ($this->imgResource !== null) {
-            \imagedestroy($this->imgResource);
             $this->imgResource = null;
         }
 
